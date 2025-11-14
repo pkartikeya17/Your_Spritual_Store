@@ -1,5 +1,5 @@
 /* ===========================
-   AI Chatbot Integration
+   AI Chatbot Integration - Enhanced
    =========================== */
 
 class MysticChatbot {
@@ -14,13 +14,13 @@ class MysticChatbot {
     this.apiKey = this.getApiKey();
     this.conversationHistory = [];
     this.isOpen = false;
+    this.maxRetries = 3;
     
     this.init();
   }
 
   getApiKey() {
     // Try to get API key from theme settings
-    // In production, this would be set via Shopify admin
     const metaTag = document.querySelector('meta[name="gemini-api-key"]');
     return metaTag ? metaTag.content : '';
   }
@@ -43,6 +43,13 @@ class MysticChatbot {
 
     // Load conversation history from sessionStorage
     this.loadConversationHistory();
+    
+    // Log initialization status
+    if (this.apiKey) {
+      console.log('✅ MysticAura AI Chatbot initialized with Gemini API');
+    } else {
+      console.log('⚠️ MysticAura AI Chatbot initialized with mock responses (API key not found)');
+    }
   }
 
   toggleChat() {
@@ -83,15 +90,18 @@ class MysticChatbot {
     // Show typing indicator
     this.showTypingIndicator();
     
-    // Get bot response
+    // Get bot response with retry logic
     try {
-      const response = await this.getBotResponse(message);
+      const response = await this.getBotResponseWithRetry(message);
       this.removeTypingIndicator();
       this.addMessage(response, 'bot');
     } catch (error) {
       console.error('Chatbot error:', error);
       this.removeTypingIndicator();
-      this.addMessage('I apologize, but I\'m having trouble connecting right now. Please try again in a moment.', 'bot');
+      this.addMessage(
+        'I apologize, but I\'m having trouble connecting right now. Please try again in a moment or contact our support team for immediate assistance.',
+        'bot'
+      );
     }
     
     // Re-enable send button
@@ -101,6 +111,23 @@ class MysticChatbot {
     
     // Save conversation
     this.saveConversationHistory();
+  }
+
+  async getBotResponseWithRetry(userMessage, retryCount = 0) {
+    try {
+      return await this.getBotResponse(userMessage);
+    } catch (error) {
+      if (retryCount < this.maxRetries) {
+        console.log(`Retry attempt ${retryCount + 1} of ${this.maxRetries}`);
+        await this.delay(1000 * (retryCount + 1)); // Exponential backoff
+        return this.getBotResponseWithRetry(userMessage, retryCount + 1);
+      }
+      throw error;
+    }
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   addMessage(text, sender) {
@@ -160,7 +187,7 @@ class MysticChatbot {
 
   async getBotResponse(userMessage) {
     // If API key is available, use Gemini API
-    if (this.apiKey) {
+    if (this.apiKey && this.apiKey !== '') {
       return await this.getGeminiResponse(userMessage);
     } else {
       // Fallback to mock responses
@@ -175,14 +202,21 @@ Your role:
 - Help customers find the right spiritual products
 - Provide information about crystal properties and benefits
 - Answer questions about product availability and features
-- Offer guidance on spiritual practices (respectfully)
+- Offer guidance on spiritual practices (respectfully and non-prescriptively)
 - Be warm, knowledgeable, and professional
+- Keep responses concise (2-4 sentences maximum)
 
 Available products include:
 1. 7 Horses on Raw Pyrite Frame - A powerful Vastu remedy for prosperity and success
 2. Dhan Yog Bracelet - A bracelet designed to attract wealth and abundance
 
-Keep responses concise (2-3 sentences) and helpful.`;
+Store policies:
+- Free shipping on orders over ₹999
+- 5-7 business days delivery across India
+- 7-day return policy
+- Authentic, ethically sourced products
+
+Keep responses helpful, friendly, and concise.`;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.apiKey}`, {
@@ -199,19 +233,39 @@ Keep responses concise (2-3 sentences) and helpful.`;
           generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 200,
-          }
+            topP: 0.8,
+            topK: 40,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }
+          ]
         })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      }
 
       const data = await response.json();
       
       if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
         return data.candidates[0].content.parts[0].text.trim();
+      } else if (data.error) {
+        throw new Error(data.error.message || 'Invalid API response');
       } else {
-        throw new Error('Invalid response from API');
+        throw new Error('Invalid response format from API');
       }
     } catch (error) {
       console.error('Gemini API error:', error);
+      // Fallback to mock response on error
       return this.getMockResponse(userMessage);
     }
   }
@@ -228,17 +282,44 @@ Keep responses concise (2-3 sentences) and helpful.`;
       return "Our Dhan Yog Bracelet is specially designed to attract wealth and abundance. It combines powerful gemstones known for their prosperity-enhancing properties. It's comfortable for daily wear and comes in adjustable sizing. Interested in learning about the specific stones used?";
     }
     
-    // General inquiries
+    // Shipping and delivery
     if (lowerMessage.includes('shipping') || lowerMessage.includes('deliver')) {
       return "We offer free shipping on orders over ₹999 and typically deliver within 5-7 business days across India. Express shipping is also available. Would you like to place an order?";
     }
     
-    if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
-      return "Our products are competitively priced with excellent quality. The 7 Horses Frame and Dhan Yog Bracelet are both available in our shop. Would you like me to help you find the current prices?";
+    // Pricing
+    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('how much')) {
+      return "Our products are competitively priced with excellent quality. The 7 Horses Frame and Dhan Yog Bracelet are both available in our shop. I'd recommend visiting our product pages to see current prices and any ongoing offers!";
     }
     
+    // Returns and refunds
+    if (lowerMessage.includes('return') || lowerMessage.includes('refund')) {
+      return "We have a 7-day return policy. If you're not satisfied with your purchase, you can return it within 7 days for a full refund. The item should be in its original condition. Need help with a return?";
+    }
+    
+    // Crystals and stones
     if (lowerMessage.includes('crystal') || lowerMessage.includes('stone')) {
       return "We specialize in authentic crystals and spiritual stones! Each piece is carefully selected for its energy and quality. Are you looking for something specific, or would you like recommendations based on your intentions?";
+    }
+    
+    // Vastu or spiritual guidance
+    if (lowerMessage.includes('vastu') || lowerMessage.includes('feng shui')) {
+      return "Our products are designed with Vastu and spiritual principles in mind. The 7 Horses painting, for example, should ideally be placed on the south or east wall of your home or office. Would you like specific placement guidance?";
+    }
+    
+    // Authenticity questions
+    if (lowerMessage.includes('authentic') || lowerMessage.includes('genuine') || lowerMessage.includes('real')) {
+      return "All our products are 100% authentic and ethically sourced. We work directly with trusted artisans and verify each item's quality. Your spiritual journey deserves genuine products, and that's our commitment!";
+    }
+    
+    // Greetings
+    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+      return "Hello! Welcome to MysticAura 🙏 I'm here to help you find the perfect spiritual items for your journey. What are you looking for today?";
+    }
+    
+    // Thank you
+    if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
+      return "You're very welcome! Feel free to ask if you have any other questions. I'm here to help make your spiritual journey meaningful! 🙏";
     }
     
     // Default responses

@@ -1,4 +1,4 @@
-# MysticAura - Premium Shopify Theme
+# YourSpiritualStore - Premium Shopify Theme
 
 A modern, responsive Shopify theme featuring dark/light mode switching and AI chatbot integration.
 
@@ -10,60 +10,67 @@ A modern, responsive Shopify theme featuring dark/light mode switching and AI ch
 - **Fully Responsive**: Optimized for desktop, tablet, and mobile devices
 - **Product Reels**: Instagram-style product showcase
 - **Smooth Animations**: Professional transitions and hover effects
+## ✨ Features
 
-## Installation
+### Core Features
+- 🌓 **Dark/Light Mode Toggle** - Seamless theme switching with localStorage persistence
+- 🤖 **AI-Powered Chatbot** - Integrated Google Gemini chatbot for customer support
+- 📱 **Fully Responsive** - Optimized for desktop, tablet, and mobile devices
+- 🎨 **Modern Design** - Clean, premium UI with elegant typography
+- ⚡ **Performance Optimized** - Lazy loading, efficient code, fast load times
 
-1. Download the theme files
-2. Compress the theme folder into a ZIP file
-3. Go to Shopify Admin > Online Store > Themes
-4. Click "Upload theme" and select your ZIP file
-5. Once uploaded, click "Customize" to edit settings
+### E-commerce Features
+- 🛍️ **Product Reels** - Instagram-style product showcase
+- 🛒 **Cart Functionality** - Smooth add-to-cart with notifications
+- 🔍 **Product Search** - Quick product discovery
+- 💳 **Payment Ready** - Ready for Shopify payment integration
+- 📦 **Shipping Info** - Clear shipping and delivery information
 
-## Configuration
+### Technical Features
+- 🎯 **Clean Code Architecture** - Modular, maintainable codebase
+- 🔧 **Custom Settings** - Easy theme customization via Shopify admin
+- 🌐 **SEO Optimized** - Proper meta tags and structured data
+- ♿ **Accessibility** - WCAG compliant with proper ARIA labels
+- 🎨 **CSS Custom Properties** - Easy color and style customization
 
-### Theme Settings
+## 🛠️ Technologies Used
 
-Navigate to **Theme Settings** in the Shopify customizer:
+- **Shopify Liquid** - Template engine
+- **JavaScript (ES6+)** - Modern vanilla JS, no frameworks
+- **CSS3** - Custom properties, Grid, Flexbox
+- **Google Gemini AI** - AI chatbot integration
+- **REST API** - Shopify Cart API integration
 
-- **Colors**: Customize light and dark mode colors
-- **Typography**: Select heading and body fonts
-- **Chatbot**: Enable/disable and configure Gemini API key
-
-### Gemini API Setup
-
-1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Go to Theme Settings > Chatbot
-3. Paste your API key in the "Gemini API Key" field
-4. Save changes
-
-## File Structure
-
-```
+## 📁 Project Structure
 mysticaura/
 ├── assets/
 │   ├── base.css           # CSS variables and resets
 │   ├── theme.css          # Main theme styles
 │   ├── theme.js           # Core JavaScript functionality
-│   └── chatbot.js         # Chatbot implementation
+│   ├── chatbot.js         # AI chatbot implementation
+│   └── global.js          # Utility functions
 ├── config/
-│   └── settings_schema.json
+│   └── settings_schema.json  # Theme settings configuration
 ├── layout/
 │   └── theme.liquid       # Main layout template
 ├── sections/
-│   ├── header.liquid
-│   ├── footer.liquid
-│   ├── hero.liquid
-│   └── featured-products.liquid
+│   ├── header.liquid      # Header with navigation
+│   ├── footer.liquid      # Footer with links
+│   ├── hero.liquid        # Hero section
+│   └── featured-products.liquid  # Product showcase
 ├── snippets/
-│   ├── chatbot.liquid
-│   ├── product-card.liquid
-│   └── meta-tags.liquid
-└── templates/
-    ├── index.liquid       # Homepage
-    ├── collection.liquid  # Collection pages
-    ├── product.liquid     # Product pages
-    └── page.liquid        # Static pages
-```
+│   ├── chatbot.liquid     # Chatbot widget
+│   ├── product-card.liquid  # Product card component
+│   └── meta-tags.liquid   # SEO meta tags
+├── templates/
+│   ├── index.liquid       # Homepage
+│   ├── collection.liquid  # Collection pages
+│   ├── product.liquid     # Product pages
+│   └── page.liquid        # Static pages
+├── .gitignore
+├── package.json
+└── README.md
+
 
 ## Products
 
@@ -138,4 +145,4 @@ This theme is proprietary. Unauthorized distribution is prohibited.
 
 ---
 
-Made with ❤️ for MysticAura
+Made with ❤️ 
